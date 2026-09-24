@@ -67,6 +67,7 @@ case "$VIRT" in
         elif [ "$ARCH" = amd64 ]; then
             apt_update
             apt_install virtualbox-guest-utils virtualbox-guest-x11
+            ok "VirtualBox guest tools installed."
         else
             action_needed "Guest Additions for ARM64 come only from the VirtualBox CD. In the VirtualBox menu choose Devices > Insert Guest Additions CD Image, then run ./setup.sh again."
             exit "$RC_ACTION"
@@ -79,6 +80,7 @@ case "$VIRT" in
         else
             apt_update
             apt_install open-vm-tools-desktop
+            ok "VMware tools installed."
         fi
         ;;
     qemu|kvm)
@@ -87,6 +89,7 @@ case "$VIRT" in
         else
             apt_update
             apt_install spice-vdagent qemu-guest-agent
+            ok "SPICE guest tools installed."
         fi
         ;;
     *)
