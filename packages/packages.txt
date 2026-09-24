@@ -14,7 +14,7 @@ iproute2
 net-tools
 iputils-ping
 traceroute
-dnsutils
+bind9-dnsutils
 whois
 telnet
 curl
