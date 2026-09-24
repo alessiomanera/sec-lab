@@ -57,10 +57,11 @@ It asks for your password (the one you chose when installing Linux), then shows 
 
 | Menu item | What it does |
 | :--- | :--- |
-| Update the whole system | Installs all available updates. |
+| Update the whole system (with nala) | Installs all available updates. It uses [nala](https://gitlab.com/volian/nala), a friendlier front end for apt with a clear summary and parallel downloads, and you can keep using it afterwards (`sudo nala install ...`). |
 | VM guest tools | VirtualBox Guest Additions, VMware tools or SPICE tools, so the window resizes and the clipboard works. Guest Additions that are already installed are left alone. |
 | Course tools and Wireshark | Installs the tools listed below and lets you capture packets without `sudo`. |
 | Keyboard layout | Your layout becomes the main one (also on the login screen); US English stays as the second layout. |
+| Nice terminal | A colorful [Starship](https://starship.rs) prompt that shows the folder, the git branch, the Python virtual environment and the exit code of failed commands; a system summary ([fastfetch](https://github.com/fastfetch-cli/fastfetch)) when a terminal opens; the JetBrains Mono font; the shortcuts `ll`, `myip`, `ports` and `update`. Your own `~/.bashrc` is kept. |
 | Bigger text | Text size of 100%, 125% (recommended), 150% or 175%. |
 | Dark theme | Dark desktop and application theme. |
 | Dock at the bottom (Ubuntu) | Dock at the bottom of the screen; clicking an open app's icon minimizes it. |
@@ -184,8 +185,9 @@ Every step is a separate script in `tasks/` that you can run on its own:
 | Change the keyboard layout (for example to German) | `sudo SECLAB_KEYBOARD=de ./tasks/keyboard.sh` and `SECLAB_KEYBOARD=de ./tasks/desktop.sh` |
 | Change only the text size | `SECLAB_DESKTOP_ITEMS=text SECLAB_TEXT_SIZE=150 ./tasks/desktop.sh` |
 | Install VS Code | `sudo ./tasks/extra-vscode.sh` |
+| Set up the nice terminal | `sudo ./tasks/terminal-tools.sh` and `./tasks/terminal-profile.sh` |
 
-Scripts started with `sudo` change the system; `tasks/desktop.sh` changes your own desktop and must run without `sudo`, in a terminal inside the desktop. Running any of them twice is safe.
+Scripts started with `sudo` change the system; `tasks/desktop.sh` and `tasks/terminal-profile.sh` change your own account and run without `sudo`, in a terminal inside the desktop. Running any of them twice is safe.
 
 ---
 
@@ -205,6 +207,8 @@ Scripts started with `sudo` change the system; `tasks/desktop.sh` changes your o
 
 **No internet in the VM.** In VirtualBox, set Settings > Network > Adapter 1 > Attached to: NAT, then try `ping -c 3 ubuntu.com` in the VM.
 
+**Going back to the plain terminal.** Open `~/.bashrc` in a text editor and delete the block between `# >>> sec-lab terminal >>>` and `# <<< sec-lab terminal <<<`. The prompt settings are in `~/.config/starship.toml` if you only want to change them.
+
 **Which architecture is my VM?** Run `dpkg --print-architecture`. It prints `amd64` or `arm64`.
 
 ---
@@ -223,4 +227,4 @@ git pull
 
 ## Scope
 
-This repository prepares student VMs for the Computer Security Lab (AY 2026-2027). It is a plain Bash script with no other dependencies, meant to be easy to read: `setup.sh` shows the menu and runs the scripts in `tasks/`, `lib/common.sh` holds the shared helpers, and `verify.sh` checks the result. It does not turn the VM into an offensive security distribution such as Kali Linux.
+This repository prepares student VMs for the Computer Security Lab (AY 2026-2027). It is a plain Bash script with no other dependencies, meant to be easy to read: `setup.sh` shows the menu and runs the scripts in `tasks/`, `lib/common.sh` holds the shared helpers, `config/` holds the terminal profile and prompt settings, and `verify.sh` checks the result. Starship and fastfetch come from the Ubuntu archive where it has them (26.04); on older releases the official release files are installed only if they match the SHA256 checksums pinned in `tasks/terminal-tools.sh`. It does not turn the VM into an offensive security distribution such as Kali Linux.
