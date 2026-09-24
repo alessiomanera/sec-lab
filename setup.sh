@@ -173,7 +173,7 @@ menu_whiptail() {
     done < <(menu_items)
     picked="$(whiptail --title "Computer Security Lab setup" --separate-output --checklist \
         "Space ticks or unticks an item, Enter continues. The recommended items are already ticked." \
-        20 76 12 "${args[@]}" 3>&1 1>&2 2>&3)" || return 1
+        22 78 13 "${args[@]}" 3>&1 1>&2 2>&3)" || return 1
     CHOICES="$(tr '\n' ' ' <<< "$picked")"
 
     if has keyboard; then
