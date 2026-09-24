@@ -1,243 +1,226 @@
 # Computer Security Lab (AY 2026-2027)
 
-Post-install setup script and verification tools for the Computer Security Lab course, taught by Prof. Maccari and Prof. Busi.
+Post-install setup for the virtual machine you use in the Computer Security Lab course, taught by Prof. Maccari and Prof. Busi.
+
+You install Ubuntu or Linux Mint in a VM, run one command, answer one menu and restart once. Afterwards the VM is up to date, its window resizes with the host window, copy and paste works between host and VM, your keyboard layout is set, the desktop is easier to read, and every tool used in the lab is installed, including Wireshark with packet capture for your normal user.
 
 ---
 
-## What this does
+## Supported systems
 
-This repository provides an automated post-install script for students preparing their virtual machine (VM) for the Computer Security Lab exercises.
+| Linux in the VM | Architecture | Desktop |
+| :--- | :--- | :--- |
+| Ubuntu 22.04, 24.04 and 26.04 LTS | amd64 and arm64 | GNOME (default Ubuntu desktop) |
+| Linux Mint 22.x | amd64 | Cinnamon or Xfce |
 
-It installs and configures:
-- Command-line utilities and text editors.
-- Networking diagnostics and legacy protocol tools (`iproute2`, `net-tools`, `traceroute`, `telnet`).
-- Network analysis and traffic capture tools (`nmap`, `tcpdump`, `wireshark`, `tshark`, `socat`, `netcat`).
-- Binary analysis, debugging, and development tools (`build-essential`, `gdb`, `strace`, `binutils`, `xxd`).
-- Python scripting environment with virtual environment support (`python3`, `python3-pip`, `python3-venv`).
-- Wireshark non-root packet capture permissions for standard student user accounts.
+Which architecture you need depends on your computer (the "host"):
 
-**What this is not:**
-This repository does not install a full offensive-security distribution such as Kali Linux, nor does it install unnecessary server daemons (Apache, BIND, DHCP server, Samba). It keeps your standard Ubuntu or Linux Mint desktop lightweight, fast, and secure.
+- **Windows PC, Intel Mac or Linux PC:** use the **amd64** (x86-64) ISO. Ubuntu or Linux Mint both work.
+- **Apple Silicon Mac (M1 and later):** use the **Ubuntu Desktop arm64** ISO. Linux Mint has no arm64 release.
 
----
-
-## Before you start
-
-Before running the setup script, ensure you have:
-
-1. **Installed a Linux VM:** Install either **Ubuntu** (recommended) or **Linux Mint** inside VirtualBox, VMware, or UTM.
-2. **Chosen the correct ISO architecture for your computer:**
-   - **Intel or AMD computer (Windows, macOS, or Linux host):**
-     Download and install the **`amd64` / `x86_64`** ISO.
-   - **Apple Silicon Mac (M1, M2, M3, M4):**
-     Download and install the **`arm64` / `aarch64`** ISO (e.g. Ubuntu Desktop ARM64).
-3. **An active internet connection** inside the VM to download packages.
-4. **A student user account with `sudo` privileges** (the default user created during OS installation).
-
-> **Note on Host Operating Systems:** The script runs entirely inside the Linux guest system. It does not matter whether your physical computer runs Windows, macOS, or Linux. The script automatically detects the architecture of the Linux guest.
+The script runs inside the Linux VM (the "guest"). It does not matter which system your computer runs; the script detects the guest architecture by itself.
 
 ---
 
-## Installation
+## 1. Check the VirtualBox settings first
 
-Open a terminal inside your Linux VM and run the following commands:
+These settings are made in VirtualBox on your computer, with the VM **powered off** (not paused or saved). They are the most common reason for a tiny VM window that does not resize.
+
+| Setting | Where in VirtualBox | Value |
+| :--- | :--- | :--- |
+| Graphics controller | Settings > Display > Screen | **VMSVGA** |
+| Video memory | Settings > Display > Screen | 128 MB |
+| Processors | Settings > System > Processor | 2 or more |
+| Memory | Settings > System > Motherboard | 4096 MB or more |
+| Shared clipboard | Settings > General > Features | Bidirectional |
+| Scale factor (only on HiDPI or Retina screens) | Settings > Display > Screen | 200% |
+
+The same settings from a terminal on your computer, with the VM powered off (replace `My VM` with the name of your VM):
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/alessiomanera/sec-lab.git
-
-# 2. Enter the repository directory
-cd sec-lab
-
-# 3. Ensure scripts have execution permissions
-chmod +x setup.sh verify.sh
-
-# 4. Run the setup script
-./setup.sh
+VBoxManage modifyvm "My VM" --graphicscontroller=vmsvga --vram=128 --cpus=2 --memory=4096 --clipboard-mode=bidirectional
 ```
 
-The script will prompt for your `sudo` password if not already elevated, display the detected operating system and architecture, and ask for confirmation before making changes.
+VMware and UTM need no special settings.
 
 ---
 
-## Verification
+## 2. Run the setup
 
-After installation finishes, verify that all course tools are correctly installed and accessible by running:
+Open a terminal inside the VM desktop and paste this line:
 
 ```bash
+sudo apt install -y git && git clone https://github.com/alessiomanera/sec-lab.git && cd sec-lab && ./setup.sh
+```
+
+It asks for your password (the one you chose when installing Linux), then shows a menu. The recommended items are already ticked; press Enter to accept them, or use the arrow keys and Space to change them.
+
+| Menu item | What it does |
+| :--- | :--- |
+| Update the whole system | Installs all available updates. |
+| VM guest tools | VirtualBox Guest Additions, VMware tools or SPICE tools, so the window resizes and the clipboard works. Guest Additions that are already installed are left alone. |
+| Course tools and Wireshark | Installs the tools listed below and lets you capture packets without `sudo`. |
+| Keyboard layout | Your layout becomes the main one (also on the login screen); US English stays as the second layout. |
+| Bigger text | Text size of 100%, 125% (recommended), 150% or 175%. |
+| Dark theme | Dark desktop and application theme. |
+| Dock at the bottom (Ubuntu) | Dock at the bottom of the screen; clicking an open app's icon minimizes it. |
+| Turn off animations (Ubuntu, Mint Cinnamon) | Makes the desktop feel faster inside a VM. |
+| No screen lock or blank screen | The VM no longer locks or goes black while you read or wait. |
+| Pin Terminal and Wireshark (Ubuntu, Mint Cinnamon) | Adds both to the dock (Ubuntu) or the menu favorites (Mint Cinnamon). |
+| Extra: Visual Studio Code | Not ticked by default. Installs VS Code from Microsoft; it then updates with the system. |
+| Extra: GNOME Tweaks (Ubuntu) | Not ticked by default. Installs GNOME Tweaks and Extension Manager. |
+
+The menu only shows the items that apply to your desktop. A final screen lists your choices before anything changes. The whole run takes about 10 to 30 minutes, mostly for the system update. At the end you see a summary with `OK`, `SKIPPED`, `ACTION NEEDED` or `FAILED` for each step.
+
+To use the recommended choices without any questions (the keyboard layout is then left as it is):
+
+```bash
+./setup.sh --yes
+```
+
+---
+
+## 3. Restart, verify, take a snapshot
+
+When the setup asks, restart the VM. The restart activates the guest tools, your new group membership for Wireshark, the keyboard layout on the login screen and any new kernel.
+
+After logging in again, open a terminal and run:
+
+```bash
+cd sec-lab
 ./verify.sh
 ```
 
-You should see output similar to:
+A ready VM ends with:
 
 ```text
 ==========================================================
- Computer Security Lab (AY 2026-2027) - Verification
- Detected Architecture: amd64
- Current User:          student
+ Verification summary
 ==========================================================
-
--- Core CLI Tools & Editors --
-  [OK]      man (/usr/bin/man)
-  [OK]      less (/usr/bin/less)
-  [OK]      tree (/usr/bin/tree)
-  [OK]      nano (/usr/bin/nano)
-  [OK]      vim (/usr/bin/vim)
-
--- Networking & Diagnostics --
-  [OK]      ip (iproute2) (/usr/bin/ip)
-  [OK]      ss (iproute2) (/usr/bin/ss)
-  [OK]      ifconfig (net-tools) (/usr/sbin/ifconfig)
-  ...
+ OK:      50
+ Missing: 0
+ Notices: 0
 ==========================================================
- Verification Summary
-==========================================================
- Available: 37
- Missing:   0
- Skipped:   0
-==========================================================
-[+] All required tools are verified and ready for the lab.
+[OK] The VM is ready for the lab.
 ```
+
+Then take a VirtualBox snapshot (Machine > Take Snapshot). It is your clean lab baseline: if an exercise breaks the VM, restore the snapshot instead of reinstalling.
 
 ---
 
 ## What gets installed
 
-The packages installed by `setup.sh` are specified in `packages/packages.txt`:
+The course tools are listed in `packages/packages.txt`:
 
-| Category | Package / Tool | Purpose in Lab |
+| Category | Package (commands) | Used for |
 | :--- | :--- | :--- |
-| **Core & Shell** | `man-db`, `less` | Manual pages and terminal pagination |
-| | `tree` | Recursive directory tree visualization |
+| Core | `man-db`, `less` | Manual pages and paging |
+| | `tree` | Directory trees |
 | | `nano`, `vim` | Terminal text editors |
-| **Networking** | `iproute2` (`ip`, `ss`) | Modern interface and socket inspection |
-| | `net-tools` (`ifconfig`, `netstat`, `arp`) | Classic networking commands referenced in lab materials |
-| | `iputils-ping`, `traceroute` | Network connectivity and path analysis |
-| | `dnsutils` (`dig`, `nslookup`) | DNS querying and inspection |
+| Networking | `iproute2` (`ip`, `ss`) | Interfaces, routes and sockets |
+| | `net-tools` (`ifconfig`, `netstat`, `arp`) | Classic networking commands used in lab material |
+| | `iputils-ping`, `traceroute` | Reachability and path analysis |
+| | `bind9-dnsutils` (`dig`, `nslookup`) | DNS queries |
 | | `whois` | Domain and IP registration lookups |
-| | `telnet` | Plaintext protocol inspection (HTTP, SMTP) |
-| | `curl`, `wget` | Command-line network transfers and downloads |
-| | `ethtool` | Network interface hardware queries |
-| **Security & Capture** | `nmap` | Network port scanning and service discovery |
-| | `tcpdump` | Command-line packet capture and filtering |
+| | `telnet` | Talking to plaintext protocols by hand |
+| | `curl`, `wget` | HTTP and file transfers |
+| | `ethtool` | Network interface details |
+| Security and capture | `nmap` | Port scanning and service discovery |
+| | `tcpdump` | Command line packet capture |
 | | `wireshark`, `tshark` | Graphical and terminal packet analysis |
 | | `iptables`, `nftables` | Packet filtering and firewall rules |
-| | `netcat-openbsd` (`nc`) | Raw TCP/UDP connections and banner grabbing |
-| | `socat` | Bidirectional data relay and port forwarding |
-| | `arping` | ARP-level host probing on local segments |
-| | `openssh-client` | SSH client for remote laboratory access |
-| | `gnupg` (`gpg`) | PGP/GPG key management and cryptographic signing |
-| | `openssl` | TLS/SSL diagnostics and certificate inspection |
-| **Development & Debug** | `build-essential` (`gcc`, `make`) | C compilation environment for lab exercises |
-| | `gdb` | GNU debugger for binary analysis |
-| | `strace` | System call tracing |
-| | `ltrace` | Library call tracing (amd64) |
-| | `python3`, `python3-pip`, `python3-venv` | Python 3 interpreter and virtual environment support |
-| | `perl` | Scripting interpreter |
-| | `git` | Version control |
-| | `file`, `binutils` (`objdump`, `readelf`) | File type identification and binary disassembly |
-| | `xxd` | Hexadecimal dump utility |
-| **Utilities** | `jq` | JSON parsing and filtering in shell pipelines |
-| | `zip`, `unzip`, `xz-utils` | Archive extraction and compression |
-| | `rsync` | File synchronization |
+| | `netcat-openbsd` (`nc`), `socat` | Raw TCP and UDP connections, relays |
+| | `arping` | ARP probing on the local network |
+| | `openssh-client` | SSH client |
+| | `gnupg` (`gpg`), `openssl` | Keys, signatures, TLS and certificates |
+| Development and debugging | `build-essential` (`gcc`, `make`) | Compiling C programs |
+| | `gdb` | Debugger |
+| | `strace`, `ltrace` | System call and library call tracing |
+| | `python3`, `python3-pip`, `python3-venv` | Python 3 and virtual environments |
+| | `perl`, `git` | Scripting and version control |
+| | `file`, `binutils` (`objdump`, `readelf`), `xxd` | Inspecting binaries and hex dumps |
+| Utilities | `jq` | JSON on the command line |
+| | `zip`, `unzip`, `xz-utils` | Archives and compression |
+| | `rsync` | Copying and syncing files |
 
-### Deliberately excluded packages
+All of them are available on amd64 and arm64.
 
-- **Base system components** (`sudo`, `coreutils`, `procps`, `psmisc`, `util-linux`): Already part of any standard Ubuntu or Linux Mint installation.
-- **Server infrastructure** (`apache2`, `bind9`, `isc-dhcp-server`, `squid`, `samba`): Excluded to prevent running persistent background services that consume VM resources or expose open ports.
-- **`openssh-server`**: Excluded from default installation so the VM does not run an active SSH listener by default. If you need SSH access from your host machine into the VM, install it explicitly:
-  ```bash
-  sudo apt install -y openssh-server
-  sudo systemctl enable --now ssh
-  ```
-- **`imagemagick`**: Excluded to keep the installation lean and avoid unnecessary image processing attack surfaces.
+### Not installed on purpose
 
----
+- **Servers** (`apache2`, `bind9`, `isc-dhcp-server`, `squid`, `samba`): they would run in the background all the time and open ports. Install one when an exercise asks for it.
+- **`openssh-server`**: without it nobody can log in to your VM over the network. If you need it, `sudo apt install -y openssh-server` installs and starts it.
+- **`imagemagick`**: not needed for the lab.
 
-## Architecture support
+### Python packages
 
-The script supports both `amd64` (x86-64) and `arm64` (aarch64):
-
-| Architecture | Platform | Status | Notes |
-| :--- | :--- | :--- | :--- |
-| **`amd64`** | Intel and AMD PCs, Intel Macs | **Fully supported** | All packages install normally. |
-| **`arm64`** | Apple Silicon Macs (M1/M2/M3/M4) | **Fully supported** | `ltrace` is skipped on ARM64 due to upstream limitations in arm64 breakpoint support. All other tools install normally. |
-
-### Note on Linux Mint on ARM64
-Official Linux Mint ISO releases target `amd64`. If you are using an unofficial community ARM64 build of Linux Mint on Apple Silicon, ensure your apt package sources point to functional ARM64 repositories. On Apple Silicon Macs, **Ubuntu Desktop ARM64** is the recommended choice.
-
----
-
-## Wireshark non-root packet capture
-
-By default in Linux, capturing live network packets requires administrative privileges. Running the full graphical Wireshark application as `root` is a security risk.
-
-`setup.sh` automatically configures Wireshark for safe, unprivileged use:
-1. Enables the `wireshark-common/install-setuid` debconf setting.
-2. Creates the `wireshark` system group.
-3. Adds your student user account to the `wireshark` group.
-4. Grants network packet capture capabilities (`cap_net_raw,cap_net_admin+eip`) to `/usr/bin/dumpcap`.
-
-### Action required after setup
-
-For group membership changes to take effect:
-- **Log out of your Linux desktop session and log back in**, OR
-- **Reboot the virtual machine**.
-
-Alternatively, to test Wireshark immediately in the current terminal window without logging out, run:
+On Ubuntu 24.04 and later, and on Linux Mint 22, `pip install` outside a virtual environment is blocked by the system. Create one per project:
 
 ```bash
-newgrp wireshark
-wireshark &
+python3 -m venv ~/venvs/lab
+source ~/venvs/lab/bin/activate
+pip install requests
 ```
+
+---
+
+## Wireshark without root
+
+Running the Wireshark window as root is a security risk, so the setup lets your normal user capture instead. It answers "yes" to the Wireshark package question "Should non-superusers be able to capture packets?", which makes the package give the capture helper `dumpcap` the needed capabilities and restrict it to the `wireshark` group, and then adds you to that group.
+
+Group changes apply from your next login, which is why the setup ends with a restart. Until then `./verify.sh` shows a notice instead of an error. Start Wireshark from the app menu and pick an interface (for example `enp0s3`, or `any`) to capture.
+
+---
+
+## Changing something later
+
+Every step is a separate script in `tasks/` that you can run on its own:
+
+| To... | Run |
+| :--- | :--- |
+| Run the menu again | `./setup.sh` |
+| Only update the system | `sudo ./tasks/system-update.sh` |
+| Only reinstall the course tools | `sudo ./tasks/course-tools.sh` |
+| Fix Wireshark capture permission | `sudo ./tasks/wireshark.sh` |
+| Change the keyboard layout (for example to German) | `sudo SECLAB_KEYBOARD=de ./tasks/keyboard.sh` and `SECLAB_KEYBOARD=de ./tasks/desktop.sh` |
+| Change only the text size | `SECLAB_DESKTOP_ITEMS=text SECLAB_TEXT_SIZE=150 ./tasks/desktop.sh` |
+| Install VS Code | `sudo ./tasks/extra-vscode.sh` |
+
+Scripts started with `sudo` change the system; `tasks/desktop.sh` changes your own desktop and must run without `sudo`, in a terminal inside the desktop. Running any of them twice is safe.
 
 ---
 
 ## Troubleshooting
 
-### 1. Permission denied when running `./setup.sh`
-Ensure the script has executable permissions:
-```bash
-chmod +x setup.sh verify.sh
-./setup.sh
-```
+**"Could not get lock" or the setup waits for another program.** A fresh VM installs updates in the background right after the first boot. The setup waits up to 10 minutes for it to finish. If it still fails, restart the VM and run `./setup.sh` again.
 
-### 2. Wireshark says "No interfaces found" or "Capture permission denied"
-Your user is not yet active in the `wireshark` group. Confirm your group membership:
-```bash
-groups
-```
-If `wireshark` is not in the list, log out and log back in, or reboot the VM.
+**The VM window is small and does not resize.** Check the VirtualBox settings in step 1, especially Graphics Controller = VMSVGA, then restart the VM. The guest tools only take effect after a restart.
 
-### 3. `apt-get update` fails or cannot reach mirrors
-Ensure your virtual machine has working internet access:
-```bash
-ping -c 3 8.8.8.8
-```
-In VirtualBox settings, ensure the network adapter is set to **NAT** or **Bridged Adapter**.
+**Apple Silicon Mac with VirtualBox: "ACTION NEEDED" for guest tools.** On arm64, VirtualBox Guest Additions only come from the Guest Additions CD. In the VM window menu choose Devices > Insert Guest Additions CD Image, wait until the CD appears on the desktop, then run `./setup.sh` again.
 
-### 4. How to check your Linux guest architecture
-Inside your VM terminal, run:
-```bash
-dpkg --print-architecture
-```
-This prints `amd64` (Intel/AMD) or `arm64` (Apple Silicon).
+**Switching the keyboard layout.** Press Super+Space on Ubuntu (Super is the Windows or Command key), or click the layout indicator in the panel on Linux Mint.
+
+**Wireshark shows no interfaces or "permission denied".** Log out and back in, or restart. If it still fails, run `sudo ./tasks/wireshark.sh`, restart and run `./verify.sh`.
+
+**A step shows FAILED.** Read the messages above the summary. Everything the setup printed is also saved in `~/sec-lab-setup.log`. Fix the cause (usually the network) and run `./setup.sh` again; finished steps are quick the second time.
+
+**No internet in the VM.** In VirtualBox, set Settings > Network > Adapter 1 > Attached to: NAT, then try `ping -c 3 ubuntu.com` in the VM.
+
+**Which architecture is my VM?** Run `dpkg --print-architecture`. It prints `amd64` or `arm64`.
 
 ---
 
 ## Updating
 
-If the package list or setup scripts are updated during the course, pull the latest changes and rerun:
+If this repository changes during the course, update your copy and run the setup again:
 
 ```bash
 cd sec-lab
-git pull origin main
+git pull
 ./setup.sh
-./verify.sh
 ```
 
 ---
 
 ## Scope
 
-This repository is maintained specifically for the **Computer Security Lab (AY 2026-2027)** at the University. It is designed to be minimal, reproducible, and easy to maintain.
+This repository prepares student VMs for the Computer Security Lab (AY 2026-2027). It is a plain Bash script with no other dependencies, meant to be easy to read: `setup.sh` shows the menu and runs the scripts in `tasks/`, `lib/common.sh` holds the shared helpers, and `verify.sh` checks the result. It does not turn the VM into an offensive security distribution such as Kali Linux.
