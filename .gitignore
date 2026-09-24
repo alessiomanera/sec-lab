@@ -1,0 +1,24 @@
+# Environments & temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# Project-specific private / untracked directories
+_PERSONAL/
+_CLASS_RESOURCES/
+/_*
+
+# Agent root rule files protection (Global Rule 2)
+/AGENTS.md
+/agents.md
+
+# Agent workspaces (kept locally, never published)
+.agents/
+.claude/

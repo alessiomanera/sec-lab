@@ -1,0 +1,57 @@
+# Computer Security Lab (AY 2026-2027)
+# Instructors: Prof. Maccari / Prof. Busi
+# Curated package manifest for Ubuntu and Linux Mint (amd64 / arm64)
+
+# Core CLI & Editors
+man-db
+less
+tree
+nano
+vim
+
+# Networking & Diagnostics
+iproute2
+net-tools
+iputils-ping
+traceroute
+dnsutils
+whois
+telnet
+curl
+wget
+ethtool
+
+# Security & Network Analysis
+nmap
+tcpdump
+wireshark
+tshark
+iptables
+nftables
+netcat-openbsd
+socat
+arping
+openssh-client
+gnupg
+openssl
+
+# Development, Debugging & Binary Analysis
+build-essential
+gdb
+strace
+ltrace
+python3
+python3-pip
+python3-venv
+perl
+git
+file
+binutils
+xxd
+
+# Utilities & Data Formats
+jq
+zip
+unzip
+xz-utils
+rsync
