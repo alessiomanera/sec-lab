@@ -377,7 +377,7 @@ echo "Restart the VM so every change takes effect (guest tools, groups, keyboard
 echo "After the restart, run ./verify.sh and take a VirtualBox snapshot as your clean lab baseline."
 
 if ! $ASSUME_YES && [ -t 0 ]; then
-    read -r -p "Restart now? [Y/n] " answer
+    read -r -p "Restart now? [Y/n] " answer || answer=n
     if [[ "${answer:-y}" =~ ^[yY] ]]; then
         systemctl reboot || warn "Could not restart automatically. Restart the VM from the system menu."
     fi
