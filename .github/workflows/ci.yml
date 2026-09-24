@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [testing, main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Every Monday: catches changes in the Ubuntu and Mint archives or in
+    # upstream downloads before students run into them.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: bash -n
+        run: for f in setup.sh verify.sh lib/*.sh tasks/*.sh .github/ci/*.sh; do bash -n "$f"; done
+      - name: ShellCheck
+        run: >
+          docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable -x -S style
+          setup.sh verify.sh lib/*.sh tasks/*.sh .github/ci/*.sh
+      - name: No en or em dashes
+        run: |
+          if grep -rn $'\xe2\x80\x93\|\xe2\x80\x94' --exclude-dir=.git .; then
+            echo "::error::Use hyphens, commas or parentheses instead of en or em dashes."
+            exit 1
+          fi
+
+  smoke:
+    # Full setup runs take about 10 minutes, so they run for pull requests
+    # to main, on the weekly schedule and on demand, not on every push.
+    if: github.event_name != 'push'
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Ubuntu 22.04 amd64, image: "ubuntu:22.04", runner: ubuntu-latest }
+          - { name: Ubuntu 24.04 amd64, image: "ubuntu:24.04", runner: ubuntu-latest }
+          - { name: Ubuntu 26.04 amd64, image: "ubuntu:26.04", runner: ubuntu-latest }
+          - { name: Linux Mint 22.2 amd64, image: "linuxmintd/mint22.2-amd64", runner: ubuntu-latest }
+          - { name: Ubuntu 24.04 arm64, image: "ubuntu:24.04", runner: ubuntu-24.04-arm }
+          - { name: Ubuntu 26.04 arm64, image: "ubuntu:26.04", runner: ubuntu-24.04-arm }
+    name: setup.sh on ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run the setup twice in a fresh container
+        # NET_ADMIN: dumpcap's file capabilities include it, and Docker drops it by default.
+        run: >
+          docker run --rm --cap-add NET_ADMIN -v "$PWD:/src:ro"
+          "${{ matrix.image }}" bash /src/.github/ci/smoke-test.sh
