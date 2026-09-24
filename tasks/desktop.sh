@@ -22,7 +22,7 @@ if [ "$(id -u)" -eq 0 ]; then
     exit 1
 fi
 detect_env
-if [ "$DESKTOP" = none ] || { [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ ! -S "${XDG_RUNTIME_DIR:-/nonexistent}/bus" ]; }; then
+if ! has_desktop_session; then
     info "No desktop session found (for example over SSH). Run ./tasks/desktop.sh from a terminal inside the desktop."
     exit "$RC_SKIPPED"
 fi
@@ -31,7 +31,6 @@ fi
 ITEMS="${SECLAB_DESKTOP_ITEMS-text dark dock animations nolock pin}"
 SIZE="${SECLAB_TEXT_SIZE:-125}"
 LAYOUT="${SECLAB_KEYBOARD:-}"
-ERRORS=0
 
 want() { [[ " $ITEMS " == *" $1 "* ]]; }
 
@@ -44,26 +43,6 @@ if [ -n "$LAYOUT" ] && ! valid_layout "$LAYOUT"; then
     exit 1
 fi
 FACTOR="$((SIZE / 100)).$(printf '%02d' $((SIZE % 100)))"
-
-# Set a GSettings key only if this desktop version has it.
-gset() {
-    if ! gsettings range "$1" "$2" >/dev/null 2>&1; then
-        info "$1 $2: not on this version, skipped."
-    elif gsettings set "$1" "$2" "$3"; then
-        ok "$1 $2 = $3"
-    else
-        ERRORS=$((ERRORS + 1))
-    fi
-}
-
-# Set an Xfce setting (created if it does not exist yet).
-xset_prop() {
-    if xfconf-query -c "$1" -p "$2" -n -t "$3" -s "$4"; then
-        ok "$1 $2 = $4"
-    else
-        ERRORS=$((ERRORS + 1))
-    fi
-}
 
 # Put the first terminal found and Wireshark at the front of a favorites
 # list, without duplicates. Usage: pin_apps SCHEMA KEY TERMINAL_ID...
@@ -246,8 +225,8 @@ case "$DESKTOP" in
         ;;
 esac
 
-if [ "$ERRORS" -gt 0 ]; then
-    fail "$ERRORS desktop setting(s) could not be applied, see above."
+if [ "$SETTING_ERRORS" -gt 0 ]; then
+    fail "$SETTING_ERRORS desktop setting(s) could not be applied, see above."
     exit 1
 fi
 ok "Desktop settings applied. Some take effect after the next login."

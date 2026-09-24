@@ -1,0 +1,36 @@
+# sec-lab: terminal profile for the Computer Security Lab VM.
+# Loaded by the "sec-lab" block at the end of ~/.bashrc; delete that block
+# to go back to the plain Ubuntu or Mint terminal.
+
+# Only for interactive shells.
+case $- in
+    *i*) ;;
+    *) return ;;
+esac
+
+# Bigger history, with the time of each command (see: history).
+HISTSIZE=10000
+HISTFILESIZE=20000
+HISTTIMEFORMAT='%F %T  '
+shopt -s histappend
+
+# Short commands that come up in the lab.
+alias ll='ls -alFh'
+alias myip='ip -brief address'
+alias ports='sudo ss -tulpn'
+if command -v nala >/dev/null 2>&1; then
+    alias update='sudo nala upgrade'
+else
+    alias update='sudo apt update && sudo apt full-upgrade'
+fi
+
+# System information once per terminal window.
+if command -v fastfetch >/dev/null 2>&1 && [ -z "${SECLAB_FETCH_SHOWN:-}" ]; then
+    export SECLAB_FETCH_SHOWN=1
+    fastfetch
+fi
+
+# Colorful prompt with the current folder, git branch and last exit code.
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+fi

@@ -28,7 +28,7 @@ action_needed() {
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
 pkg_installed() {
-    dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q 'ok installed'
+    dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep 'ok installed' >/dev/null
 }
 
 require_root() {
@@ -131,8 +131,37 @@ apt_install() {
 valid_layout() {
     [[ "$1" =~ ^[a-z]{2,6}$ ]] || return 1
     if [ -r /usr/share/X11/xkb/rules/base.lst ]; then
-        sed -n '/^! layout/,/^! variant/p' /usr/share/X11/xkb/rules/base.lst | grep -q "^  $1 "
+        sed -n '/^! layout/,/^! variant/p' /usr/share/X11/xkb/rules/base.lst | grep "^  $1 " >/dev/null
     fi
+}
+
+# Desktop settings. Failures are counted in SETTING_ERRORS so a task can
+# apply every other setting first and report the failures at the end.
+SETTING_ERRORS=0
+
+# Set a GSettings key only if this desktop version has it.
+gset() {
+    if ! gsettings range "$1" "$2" >/dev/null 2>&1; then
+        info "$1 $2: not on this version, skipped."
+    elif gsettings set "$1" "$2" "$3"; then
+        ok "$1 $2 = $3"
+    else
+        SETTING_ERRORS=$((SETTING_ERRORS + 1))
+    fi
+}
+
+# Set an Xfce setting (created if it does not exist yet).
+xset_prop() {
+    if xfconf-query -c "$1" -p "$2" -n -t "$3" -s "$4"; then
+        ok "$1 $2 = $4"
+    else
+        SETTING_ERRORS=$((SETTING_ERRORS + 1))
+    fi
+}
+
+# True inside a desktop session that GSettings or Xfconf can talk to.
+has_desktop_session() {
+    [ "$DESKTOP" != none ] && { [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] || [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/bus" ]; }
 }
 
 # Run each task in its own process and append "<task>|<status>" to

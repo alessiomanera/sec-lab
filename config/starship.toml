@@ -1,0 +1,49 @@
+# sec-lab: Starship prompt for the Computer Security Lab VM.
+# Works with any font (no Nerd Font needed). Docs: https://starship.rs/config/
+# setup.sh replaces this file only while this first line is unchanged.
+
+add_newline = true
+format = "$username$hostname$directory$git_branch$git_status$python$cmd_duration$status$line_break$character"
+
+[username]
+show_always = true
+style_user = "bold green"
+style_root = "bold red"
+format = "[$user]($style)"
+
+[hostname]
+ssh_only = false
+style = "bold green"
+format = "[@$hostname]($style) "
+
+[directory]
+style = "bold cyan"
+truncation_length = 4
+truncate_to_repo = false
+read_only = " (read only)"
+
+[git_branch]
+style = "bold purple"
+format = "on [git:$branch]($style) "
+
+[git_status]
+style = "bold yellow"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+
+[python]
+style = "bold blue"
+format = 'with [python $version( \($virtualenv\))]($style) '
+
+[cmd_duration]
+min_time = 2000
+style = "bold yellow"
+format = "took [$duration]($style) "
+
+[status]
+disabled = false
+style = "bold red"
+format = "[exit code $status]($style) "
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"

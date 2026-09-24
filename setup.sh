@@ -25,7 +25,7 @@ usage() {
 Usage: ./setup.sh [--yes]
 
 Sets up this VM for the Computer Security Lab: system update, guest tools,
-course tools and Wireshark, keyboard layout and desktop settings.
+course tools and Wireshark, keyboard layout, terminal and desktop settings.
 Run it as your normal user; it asks for your password once.
 
   -y, --yes   use the recommended choices, keep the keyboard layout, no questions
@@ -108,7 +108,7 @@ preflight() {
         warn "Less than 15 GB of free disk space ($((free_kb / 1024 / 1024)) GB). The updates and tools may not fit."
     fi
     if [ "$VIRT" = oracle ] && [ "$ARCH" = amd64 ] && command_exists lspci; then
-        if ! lspci | grep -qi 'VMware SVGA II'; then
+        if ! lspci | grep -i 'VMware SVGA II' >/dev/null; then
             warn "The VirtualBox graphics controller is not VMSVGA, so the VM window stays small and does not resize. Power off the VM, set Settings > Display > Graphics Controller to VMSVGA, then run ./setup.sh again."
         fi
     fi
@@ -117,10 +117,11 @@ preflight() {
 # Menu entries as "tag|label|default". Desktop entries are shown only where
 # they do something.
 menu_items() {
-    echo "update|Update the whole system|on"
+    echo "update|Update the whole system (with nala)|on"
     echo "guest|VM guest tools: resizable window, shared clipboard|on"
     echo "course|Course tools and Wireshark capture permission|on"
     echo "keyboard|Keyboard layout (asked next)|on"
+    echo "terminal|Nice terminal: Starship prompt, fastfetch, JetBrains Mono font|on"
     case "$DESKTOP" in
         gnome|cinnamon|xfce)
             echo "text|Bigger text (size asked next)|on"
@@ -287,6 +288,7 @@ if has update; then ROOT_TASKS+=(system-update); fi
 if has guest; then ROOT_TASKS+=(guest-tools); fi
 if has course; then ROOT_TASKS+=(course-tools wireshark); fi
 if has keyboard; then ROOT_TASKS+=(keyboard); fi
+if has terminal; then ROOT_TASKS+=(terminal-tools); fi
 if has vscode; then ROOT_TASKS+=(extra-vscode); fi
 if has tweaks; then ROOT_TASKS+=(extra-tweaks); fi
 
@@ -296,6 +298,7 @@ for item in text dark dock animations nolock pin; do
 done
 USER_TASKS=()
 if [ -n "$DESKTOP_ITEMS" ] || [ -n "$KEYBOARD" ]; then USER_TASKS+=(desktop); fi
+if has terminal; then USER_TASKS+=(terminal-profile); fi
 
 # Task results and notes, written by the root tasks too. They live in a
 # private directory because root may not write to a user's file directly
@@ -331,15 +334,17 @@ bash "$SECLAB_ROOT/verify.sh" || verify_rc=$?
 
 label_of() {
     case "$1" in
-        system-update) echo "System update" ;;
-        guest-tools)   echo "VM guest tools" ;;
-        course-tools)  echo "Course tools" ;;
-        wireshark)     echo "Wireshark capture permission" ;;
-        keyboard)      echo "Keyboard layout" ;;
-        desktop)       echo "Desktop settings" ;;
-        extra-vscode)  echo "VS Code" ;;
-        extra-tweaks)  echo "GNOME Tweaks" ;;
-        *)             echo "$1" ;;
+        system-update)    echo "System update" ;;
+        guest-tools)      echo "VM guest tools" ;;
+        course-tools)     echo "Course tools" ;;
+        wireshark)        echo "Wireshark capture permission" ;;
+        keyboard)         echo "Keyboard layout" ;;
+        terminal-tools)   echo "Terminal tools" ;;
+        terminal-profile) echo "Terminal profile" ;;
+        desktop)          echo "Desktop settings" ;;
+        extra-vscode)     echo "VS Code" ;;
+        extra-tweaks)     echo "GNOME Tweaks" ;;
+        *)                echo "$1" ;;
     esac
 }
 

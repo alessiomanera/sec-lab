@@ -130,7 +130,7 @@ capture_works() {
     local file rc=0
     file="$(mktemp)"
     CAPTURE_ERROR="$(dumpcap -q -i lo -a duration:1 -w "$file" 2>&1 >/dev/null)" || rc=1
-    CAPTURE_ERROR="$(grep -v '^Capturing on' <<< "$CAPTURE_ERROR" | grep -m 1 . | sed 's/^.*line [0-9]*: //')"
+    CAPTURE_ERROR="$(grep -v '^Capturing on' <<< "$CAPTURE_ERROR" | awk 'NF && !shown++' | sed 's/^.*line [0-9]*: //')"
     rm -f "$file"
     return "$rc"
 }
@@ -138,7 +138,7 @@ if ! command_exists dumpcap; then
     missing "Packet capture: dumpcap is not installed (run ./setup.sh)"
 elif capture_works; then
     pass "Packet capture works for $USER_NAME"
-elif id -nG "$USER_NAME" | grep -qw wireshark && ! id -nG | grep -qw wireshark; then
+elif id -nG "$USER_NAME" | grep -w wireshark >/dev/null && ! id -nG | grep -w wireshark >/dev/null; then
     notice "$USER_NAME was just added to the wireshark group. Log out and back in (or reboot), then run ./verify.sh again."
 else
     missing "Packet capture fails for $USER_NAME ($CAPTURE_ERROR). Run: sudo ./tasks/wireshark.sh, then log out and back in."
