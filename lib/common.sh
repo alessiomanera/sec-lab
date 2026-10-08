@@ -81,10 +81,11 @@ detect_env() {
 # (a fresh VM often runs automatic updates in the background) and keeps
 # existing configuration files on upgrades.
 apt_get() {
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
+    DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -y \
         -o DPkg::Lock::Timeout=600 \
         -o Dpkg::Options::=--force-confdef \
         -o Dpkg::Options::=--force-confold \
+        -o Needrestart::Restart=a \
         "$@"
 }
 

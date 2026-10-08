@@ -26,8 +26,9 @@ note()    { printf '  [INFO]    %s\n' "$1"; }
 
 # Some tools live in sbin, which is not in a normal user's PATH.
 resolve_cmd() {
-    local dir
-    if command -v "$1" 2>/dev/null; then
+    local dir found
+    if found="$(command -v "$1" 2>/dev/null)"; then
+        echo "$found"
         return 0
     fi
     for dir in /usr/sbin /sbin /usr/local/sbin; do
@@ -149,7 +150,7 @@ echo "-- VM integration (information only) --"
 case "$VIRT" in
     oracle) service=VBoxService ;;
     vmware) service=vmtoolsd ;;
-    qemu|kvm) service=spice-vdagent ;;
+    qemu|kvm|apple) service=spice-vdagent ;;
     *) service="" ;;
 esac
 if [ -z "$service" ]; then
