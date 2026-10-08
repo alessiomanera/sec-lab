@@ -52,7 +52,7 @@ VMware and UTM need no special settings.
 Open a terminal inside the VM desktop and paste this line:
 
 ```bash
-sudo apt install -y git && git clone https://github.com/alessiomanera/sec-lab.git && cd sec-lab && ./setup.sh
+sudo apt-get -o DPkg::Lock::Timeout=600 install -y git && git clone https://github.com/alessiomanera/sec-lab.git && cd sec-lab && ./setup.sh
 ```
 
 It asks for your password (the one you chose when installing Linux), then shows a menu. The recommended items are already ticked; press Enter to accept them, or use the arrow keys and Space to change them.
@@ -198,6 +198,8 @@ Scripts started with `sudo` change the system; `tasks/desktop.sh` and `tasks/ter
 **"Could not get lock" or the setup waits for another program.** A fresh VM installs updates in the background right after the first boot. The setup waits up to 10 minutes for it to finish. If it still fails, restart the VM and run `./setup.sh` again.
 
 **The VM window is small and does not resize.** Check the VirtualBox settings in step 1, especially Graphics Controller = VMSVGA, then restart the VM. The guest tools only take effect after a restart.
+
+**The clipboard does not work between host and VM (Ubuntu).** Ubuntu uses Wayland by default, which isolates clipboard access. If copy-paste does not work after restarting, log out, click your user name on the login screen, click the gear icon in the bottom-right corner, select "Ubuntu on Xorg", and log back in.
 
 **Apple Silicon Mac with VirtualBox: "ACTION NEEDED" for guest tools.** On arm64, VirtualBox Guest Additions only come from the Guest Additions CD. In the VM window menu choose Devices > Insert Guest Additions CD Image, wait until the CD appears on the desktop, then run `./setup.sh` again.
 

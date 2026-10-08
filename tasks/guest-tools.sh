@@ -36,7 +36,8 @@ install_from_cd() {
     fi
     info "Installing the build tools the Guest Additions need..."
     apt_update
-    apt_install build-essential bzip2 "linux-headers-$(uname -r)"
+    apt_install build-essential bzip2 dkms linux-headers-generic "linux-headers-$(uname -r)" \
+        || apt_install build-essential bzip2 dkms linux-headers-generic
     info "Running $installer from the Guest Additions CD..."
     # The installer's exit code is not reliable (it is non-zero when only a
     # reboot is missing), so check the result instead.
@@ -50,7 +51,7 @@ install_from_cd() {
 
 case "$VIRT" in
     oracle)
-        if guest_additions_installed || pkg_installed virtualbox-guest-utils; then
+        if guest_additions_installed || { pkg_installed virtualbox-guest-utils && pkg_installed virtualbox-guest-x11; }; then
             ok "VirtualBox Guest Additions are already installed, leaving them as they are."
             add_to_vboxsf
             exit 0
@@ -83,7 +84,7 @@ case "$VIRT" in
             ok "VMware tools installed."
         fi
         ;;
-    qemu|kvm)
+    qemu|kvm|apple)
         if pkg_installed spice-vdagent; then
             ok "SPICE guest tools are already installed."
         else
