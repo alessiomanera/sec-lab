@@ -232,3 +232,8 @@ git pull
 ## Scope
 
 This repository prepares student VMs for the Computer Security Lab (AY 2026-2027). It is a plain Bash script with no other dependencies, meant to be easy to read: `setup.sh` shows the menu and runs the scripts in `tasks/`, `lib/common.sh` holds the shared helpers, `config/` holds the terminal profile and prompt settings, and `verify.sh` checks the result. Starship and fastfetch come from the Ubuntu archive where it has them (26.04); on older releases the official release files are installed only if they match the SHA256 checksums pinned in `tasks/terminal-tools.sh`. GitHub Actions checks every change with ShellCheck and runs the whole setup twice in fresh Ubuntu 22.04, 24.04 and 26.04 and Linux Mint 22.2 containers (amd64, plus Ubuntu arm64) for every pull request and once a week. It does not turn the VM into an offensive security distribution such as Kali Linux.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Fellow students are welcome to clone and reuse this; it is provided as is, without warranty, and the author is not responsible for how it is used.
+
